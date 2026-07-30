@@ -1,6 +1,17 @@
 #pragma once
 #include <driver/gpio.h>
+#if __has_include(<esp_idf_version.h>)
+#include <esp_idf_version.h>
+#endif
+#include <soc/soc_caps.h>
+
+#if defined(ESP_IDF_VERSION) && defined(ESP_IDF_VERSION_VAL) && ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0)
+#define ESP32ENCODER_USE_NEW_PCNT 1
+#include <driver/pulse_cnt.h>
+#else
+#define ESP32ENCODER_USE_NEW_PCNT 0
 #include <driver/pcnt.h>
+#endif
 #ifndef ARDUINO
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
@@ -8,7 +19,11 @@
 #include <freertos/semphr.h>
 #endif
 
+#if ESP32ENCODER_USE_NEW_PCNT
+#define MAX_ESP32_ENCODERS SOC_PCNT_UNITS_PER_GROUP
+#else
 #define MAX_ESP32_ENCODERS PCNT_UNIT_MAX
+#endif
 #define 	_INT16_MAX 32766
 #define  	_INT16_MIN -32766
 #define ISR_CORE_USE_DEFAULT (0xffffffff)
@@ -57,10 +72,15 @@ public:
 	bool always_interrupt;
 	gpio_num_t aPinNumber;
 	gpio_num_t bPinNumber;
+#if ESP32ENCODER_USE_NEW_PCNT
+	int unit;
+	pcnt_unit_config_t r_enc_config;
+#else
 	pcnt_unit_t unit;
+	pcnt_config_t r_enc_config;
+#endif
 	int countsMode = 2;
 	volatile int64_t count=0;
-	pcnt_config_t r_enc_config;
 	static puType useInternalWeakPullResistors;
 	static uint32_t isrServiceCpuCore;
 	enc_isr_cb_t _enc_isr_cb;
@@ -70,6 +90,11 @@ private:
 	static bool attachedInterrupt;
 	void attach(int aPintNumber, int bPinNumber, encType et);
 	int64_t getCountRaw();
+#if ESP32ENCODER_USE_NEW_PCNT
+	static bool pcntCallback(pcnt_unit_handle_t unit, const pcnt_watch_event_data_t *edata, void *user_ctx);
+	pcnt_unit_handle_t unitHandle = nullptr;
+	pcnt_channel_handle_t channelHandles[2] = {nullptr, nullptr};
+#endif
 	bool attached;
   bool direction;
   bool working;

@@ -54,8 +54,8 @@ ESP32Encoder::ESP32Encoder(bool always_interrupt_, enc_isr_cb_t enc_isr_cb, void
 	unit{(pcnt_unit_t) -1},
 #endif
 	countsMode{2},
-	count{0},
 	r_enc_config{},
+	count{0},
 	_enc_isr_cb(enc_isr_cb),
 	_enc_isr_cb_data(enc_isr_cb_data),
 	attached{false},

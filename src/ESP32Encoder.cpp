@@ -369,10 +369,8 @@ static void esp32encoder_pcnt_intr_handler(void *arg) {
 	_ENTER_CRITICAL();
 	if(PCNT.status_unit[unit].COUNTER_H_LIM){
 		esp32enc->count = esp32enc->count + esp32enc->r_enc_config.counter_h_lim;
-		pcnt_counter_clear(unit);
 	} else if(PCNT.status_unit[unit].COUNTER_L_LIM){
 		esp32enc->count = esp32enc->count + esp32enc->r_enc_config.counter_l_lim;
-		pcnt_counter_clear(unit);
 	} else if(esp32enc->always_interrupt && (PCNT.status_unit[unit].thres0_lat || PCNT.status_unit[unit].thres1_lat)) {
 		int16_t c;
 		pcnt_get_counter_value(unit, &c);
